@@ -7,6 +7,7 @@
                 <h1 class="mt-5">Test microservices</h1>
                 <hr>
                 <button id="brokerBtn" class="btn btn-outline-secondary">Test Broker</button>
+                <button id="authBrokerBtn" class="btn btn-outline-secondary">Test Broker</button>
 
                 <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
                     <span class="text-muted">Output shows here...</span>
@@ -33,6 +34,7 @@
 {{define "js"}}
     <script>
     const brokerBtn = document.getElementById('brokerBtn');
+    const authBrokerBtn = document.getElementById('authBrokerBtn');
     const output = document.getElementById('output');
     const sent = document.getElementById('payload');
     const received = document.getElementById('received');
@@ -53,7 +55,52 @@
             } else {
                 const br = document.createElement('br');
                 const strong = document.createElement('strong');
-                strong.textContent = 'Response from broker service:';
+                strong.textContent = 'Response from broker service: ';
+                const message = document.createTextNode(data.message);
+                output.append(br, strong, message);
+            }
+        } catch (error) {
+            const br1 = document.createElement('br');
+            const br2 = document.createElement('br');
+            const message = document.createTextNode(`Error: ${error}`);
+            output.append(br1, br2, message);
+        }
+    })
+
+    authBrokerBtn.addEventListener('click', async () => {
+        const payload = JSON.stringify({
+            action: "auth",
+            auth: {
+                email: "admin@example.com",
+                password: "verysecret"
+            }
+        }, undefined, 4);
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: "POST",
+            body: payload,
+            headers,
+        }
+
+        try {
+            const response = await fetch('http:\/\/localhost:8080/handle', body);;
+            const data = await response.json();
+            sent.textContent = payload
+            received.textContent = JSON.stringify(data, undefined, 4);
+
+            if (data.error) {
+                const br = document.createElement('br');
+                const strong = document.createElement('strong');
+                strong.textContent = 'Error: ';
+                const message = document.createTextNode(data.message);
+                output.append(br, strong, message);
+            } else {
+                const br = document.createElement('br');
+                const strong = document.createElement('strong');
+                strong.textContent = 'Response from broker service: ';
                 const message = document.createTextNode(data.message);
                 output.append(br, strong, message);
             }
